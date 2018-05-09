@@ -52,8 +52,8 @@ func (cmd *produceCmd) read(as []string) produceArgs {
 	flags.StringVar(&args.version, "version", "", "Kafka protocol version")
 	flags.StringVar(&args.compression, "compression", "", "Kafka message compression codec [gzip|snappy|lz4] (defaults to none)")
 	flags.StringVar(&args.partitioner, "partitioner", "", "Optional partitioner to use. Available: hashCode")
-	flags.StringVar(&args.decodeKey, "decodekey", "string", "Decode message value as (string|hex|base64), defaults to string.")
-	flags.StringVar(&args.decodeValue, "decodevalue", "string", "Decode message value as (string|hex|base64), defaults to string.")
+	flags.StringVar(&args.decodeKey, "", "string", "Decode message value as (string|hex|base64), defaults to string.")
+	flags.StringVar(&args.decodeValue, "", "string", "Decode message value as (string|hex|base64), defaults to string.")
 	flags.IntVar(&args.bufferSize, "buffersize", 16777216, "Buffer size for scanning stdin, defaults to 16777216=16*1024*1024.")
 
 	flags.Usage = func() {
@@ -104,17 +104,33 @@ func (cmd *produceCmd) parseArgs(as []string) {
 		}
 	}
 
-	if args.decodeValue != "string" && args.decodeValue != "hex" && args.decodeValue != "base64" {
+	decodeValue := args.decodeValue
+	if decodeValue == "" {
+		decodeValue = os.Getenv("KT_DECODE_VALUE")
+	}
+	switch decodeValue {
+	case "string", "hex", "base64":
+		cmd.decodeValue = decodeValue
+	case "":
+		cmd.decodeValue = "string"
+	default:
 		cmd.failStartup(fmt.Sprintf(`unsupported decodevalue argument %#v, only string, hex and base64 are supported.`, args.decodeValue))
 		return
 	}
-	cmd.decodeValue = args.decodeValue
 
-	if args.decodeKey != "string" && args.decodeKey != "hex" && args.decodeKey != "base64" {
+	decodeKey := args.decodeKey
+	if decodeKey == "" {
+		decodeKey = os.Getenv("KT_DECODE_KEY")
+	}
+	switch decodeKey {
+	case "string", "hex", "base64":
+		cmd.decodeKey = decodeKey
+	case "":
+		cmd.decodeKey = "string"
+	default:
 		cmd.failStartup(fmt.Sprintf(`unsupported decodekey argument %#v, only string, hex and base64 are supported.`, args.decodeValue))
 		return
 	}
-	cmd.decodeKey = args.decodeKey
 
 	cmd.batch = args.batch
 	cmd.timeout = args.timeout
