@@ -34,7 +34,8 @@ The commands are:
 
 Use "kt [command] -help" for for information about the command.
 
-More at https://github.com/fgeller/kt`
+More at https://github.com/fgeller/kt
+This is a fork from https://github.com/pkqk/kt`
 
 func parseArgs() command {
 	if len(os.Args) < 2 {
