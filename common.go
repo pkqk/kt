@@ -163,3 +163,18 @@ func randomString(length int) string {
 	r.Read(buf)
 	return fmt.Sprintf("%x", buf)[:length]
 }
+
+func getTransformValue(name, envvar, argvalue string) (string, error) {
+	value := argvalue
+	if value == "" {
+		value = os.Getenv(envvar)
+	}
+	switch value {
+	case "string", "hex", "base64":
+		return value, nil
+	case "":
+		return "string", nil
+	default:
+		return "", fmt.Errorf(`unsupported %s argument %#v, only string, hex and base64 are supported`, name, value)
+	}
+}

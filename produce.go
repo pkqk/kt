@@ -104,32 +104,16 @@ func (cmd *produceCmd) parseArgs(as []string) {
 		}
 	}
 
-	decodeValue := args.decodeValue
-	if decodeValue == "" {
-		decodeValue = os.Getenv("KT_DECODE_VALUE")
-	}
-	switch decodeValue {
-	case "string", "hex", "base64":
+	if decodeValue, err := getTransformValue("decodevalue", "KT_DECODE_VALUE", args.decodeValue); err == nil {
 		cmd.decodeValue = decodeValue
-	case "":
-		cmd.decodeValue = "string"
-	default:
-		cmd.failStartup(fmt.Sprintf(`unsupported decodevalue argument %#v, only string, hex and base64 are supported.`, args.decodeValue))
-		return
+	} else {
+		cmd.failStartup(err.Error())
 	}
 
-	decodeKey := args.decodeKey
-	if decodeKey == "" {
-		decodeKey = os.Getenv("KT_DECODE_KEY")
-	}
-	switch decodeKey {
-	case "string", "hex", "base64":
+	if decodeKey, err := getTransformValue("decodekey", "KT_DECODE_KEY", args.decodeKey); err == nil {
 		cmd.decodeKey = decodeKey
-	case "":
-		cmd.decodeKey = "string"
-	default:
-		cmd.failStartup(fmt.Sprintf(`unsupported decodekey argument %#v, only string, hex and base64 are supported.`, args.decodeValue))
-		return
+	} else {
+		cmd.failStartup(err.Error())
 	}
 
 	cmd.batch = args.batch

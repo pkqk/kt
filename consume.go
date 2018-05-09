@@ -204,17 +204,17 @@ func (cmd *consumeCmd) parseArgs(as []string) {
 	cmd.pretty = args.pretty
 	cmd.version = kafkaVersion(args.version)
 
-	if args.encodeValue != "string" && args.encodeValue != "hex" && args.encodeValue != "base64" {
-		cmd.failStartup(fmt.Sprintf(`unsupported encodevalue argument %#v, only string, hex and base64 are supported.`, args.encodeValue))
-		return
+	if encodeValue, err := getTransformValue("encodevalue", "KT_ENCODE_VALUE", args.encodeValue); err == nil {
+		cmd.encodeValue = encodeValue
+	} else {
+		cmd.failStartup(err.Error())
 	}
-	cmd.encodeValue = args.encodeValue
 
-	if args.encodeKey != "string" && args.encodeKey != "hex" && args.encodeKey != "base64" {
-		cmd.failStartup(fmt.Sprintf(`unsupported encodekey argument %#v, only string, hex and base64 are supported.`, args.encodeValue))
-		return
+	if encodeKey, err := getTransformValue("encodekey", "KT_ENCODE_KEY", args.encodeKey); err == nil {
+		cmd.encodeKey = encodeKey
+	} else {
+		cmd.failStartup(err.Error())
 	}
-	cmd.encodeKey = args.encodeKey
 
 	envBrokers := os.Getenv("KT_BROKERS")
 	if args.brokers == "" {
@@ -247,8 +247,8 @@ func (cmd *consumeCmd) parseFlags(as []string) consumeArgs {
 	flags.BoolVar(&args.verbose, "verbose", false, "More verbose logging to stderr.")
 	flags.BoolVar(&args.pretty, "pretty", true, "Control output pretty printing.")
 	flags.StringVar(&args.version, "version", "", "Kafka protocol version")
-	flags.StringVar(&args.encodeValue, "encodevalue", "string", "Present message value as (string|hex|base64), defaults to string.")
-	flags.StringVar(&args.encodeKey, "encodekey", "string", "Present message key as (string|hex|base64), defaults to string.")
+	flags.StringVar(&args.encodeValue, "encodevalue", "", "Present message value as (string|hex|base64), defaults to string.")
+	flags.StringVar(&args.encodeKey, "encodekey", "", "Present message key as (string|hex|base64), defaults to string.")
 
 	flags.Usage = func() {
 		fmt.Fprintln(os.Stderr, "Usage of consume:")
